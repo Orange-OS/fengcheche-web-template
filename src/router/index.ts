@@ -117,11 +117,11 @@ const router = createRouter({
     //   },
     // },
     ...errorRoutes, // 添加错误页面路由
-    // 通配符路由，必须放在最后
-    {
-      path: '/:pathMatch(.*)*',
-      redirect: '/404',
-    },
+    // 通配符路由，必须放在最后 (This will be added dynamically later)
+    // {
+    //   path: '/:pathMatch(.*)*',
+    //   redirect: '/404',
+    // },
   ],
 })
 
@@ -154,6 +154,8 @@ function generateRoutes(menuList: MenuItem[]): RouteRecordRaw[] {
   return routes
 }
 
+let hasAddedWildcardRoute = false
+
 // 加载动态路由
 async function loadDynamicRoutes(routerInstance: Router) {
   const menuStore = useMenuStore()
@@ -171,6 +173,15 @@ async function loadDynamicRoutes(routerInstance: Router) {
           routerInstance.addRoute('home', route)
         }
       })
+    }
+
+    // Add the wildcard route only after dynamic routes have been added
+    if (!hasAddedWildcardRoute) {
+      routerInstance.addRoute({
+        path: '/:pathMatch(.*)*',
+        redirect: '/404',
+      })
+      hasAddedWildcardRoute = true
     }
   } catch (error) {
     console.error('加载动态路由失败:', error)
