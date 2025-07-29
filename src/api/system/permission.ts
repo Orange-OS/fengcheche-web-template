@@ -2,13 +2,13 @@ import request from '@/utils/request';
 
 // 权限列表接口参数类型
 export interface PermissionListQuery {
-  name?: String
+  name?: string
   code?: string
 }
 
 // 权限分页接口参数类型
 export interface PermissionPageQuery {
-  name?: String
+  name?: string
   code?: string
   pageNum: number    // 当前页码
   pageSize: number   // 每页条数

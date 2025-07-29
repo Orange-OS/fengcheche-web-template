@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-table :data="permissionList" style="width: 100%" v-loading="loading">
+      <el-table :data="permissionList" style="width: 100%" max-height="940px" v-loading="loading">
         <el-table-column prop="name" label="权限名称" />
         <el-table-column prop="code" label="权限标识" />
         <el-table-column prop="description" label="描述" />
