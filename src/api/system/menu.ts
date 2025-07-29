@@ -2,13 +2,13 @@ import request from '@/utils/request';
 
 // 权限列表接口参数类型
 export interface PermissionListQuery {
-  name?: String
+  name?: string
   code?: string
 }
 
 // 权限分页接口参数类型
 export interface PermissionPageQuery {
-  name?: String
+  name?: string
   code?: string
   pageNum: number    // 当前页码
   pageSize: number   // 每页条数
@@ -54,11 +54,10 @@ export function getMenuTreeByUserId(userId: string | number) {
   })
 }
 
-
 /**
- * 添加权限
+ * 添加菜单
  */
-export function addMenu(data: SystemRole) {
+export function addMenu(data: MenuItem) {
   return request({
     url: '/system/menu',
     method: 'post',
@@ -67,20 +66,20 @@ export function addMenu(data: SystemRole) {
 }
 
 /**
- * 更新权限
+ * 更新菜单
  */
-export function updateMenu(data: SystemRole) {
+export function updateMenu(data: MenuItem) {
   return request({
-    url: `/system/menu/${data.id}`,
+    url: `/system/menu`,
     method: 'put',
     data,
   })
 }
 
 /**
- * 删除权限
+ * 删除菜单
  */
-export function deleteMenu(id: string | number) {
+export function deleteMenu(id: number) {
   return request({
     url: `/system/menu/${id}`,
     method: 'delete',
@@ -88,7 +87,7 @@ export function deleteMenu(id: string | number) {
 }
 
 /**
- * 更新权限状态
+ * 更新菜单状态
  */
 export function updateMenuStatus(id: number, status: number) {
   return request<void>({

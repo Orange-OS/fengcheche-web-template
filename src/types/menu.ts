@@ -1,5 +1,5 @@
 export interface MenuItem {
-  id: string | number
+  id: number
   name: string
   path: string
   component: string
@@ -9,5 +9,6 @@ export interface MenuItem {
   icon?: string
   children?: MenuItem[]
   permissions?: string[]
-  parentId?: string | number // 添加parentId字段，可以是字符串或数字类型
+  parentId?: number
+  sort: number
 }

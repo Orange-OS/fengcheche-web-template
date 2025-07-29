@@ -21,7 +21,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="orderNum" label="显示顺序" width="80" />
+        <el-table-column prop="sort" label="显示顺序" width="80" />
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
             <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(row)" />
@@ -86,7 +86,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { MenuItem, MenuForm } from '@/types/menu'
+import type { MenuItem } from '@/types/menu'
 import {
   getMenuTreeByUserId,
   addMenu,
@@ -107,13 +107,13 @@ const menuTreeOptions = ref<MenuItem[]>([]) // 用于树形选择器的数据
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增菜单')
 const menuFormRef = ref<FormInstance>()
-const menuForm = reactive<MenuForm>({
+const menuForm = reactive<MenuItem>({
   id: undefined,
   parentId: 0,
   name: '',
   path: '',
   component: '',
-  permissions: '',
+  permissions: [],
   menuType: 'M',
   sort: 0,
   status: 1
