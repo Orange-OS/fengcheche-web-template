@@ -7,6 +7,7 @@ export interface MenuItem {
   visible?: number // 1: 显示, 0: 隐藏
   status?: number // 1: 启用, 0: 禁用
   icon?: string
+  remark?: string
   children?: MenuItem[]
   permissions?: string[]
   parentId?: number

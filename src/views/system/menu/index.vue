@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-table :data="menuList" style="width: 100%" v-loading="loading" row-key="id"
+      <el-table :data="menuList" style="width: 100%" max-height="940px" v-loading="loading" row-key="id"
         :tree-props="{ children: 'children' }">
         <el-table-column prop="name" label="菜单名称" />
         <el-table-column prop="path" label="路由路径" />
@@ -16,9 +16,17 @@
         <el-table-column prop="permission" label="权限标识" />
         <el-table-column prop="menuType" label="类型">
           <template #default="{ row }">
-            <el-tag :type="row.menuType === 'M' ? 'primary' : row.menuType === 'C' ? 'success' : 'info'">
-              {{ row.menuType === 'M' ? '目录' : row.menuType === 'C' ? '菜单' : '按钮' }}
+            <el-tag :type="row?.menuType === 'M' ? 'primary' : row?.menuType === 'C' ? 'success' : 'info'">
+              {{ row?.menuType === 'M' ? '目录' : row?.menuType === 'C' ? '菜单' : '按钮' }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="icon" label="菜单图标">
+          <template #default="{ row }">
+            <el-icon v-if="row.icon">
+              <component :is="row.icon" />
+            </el-icon>
+            <span v-else>无图标</span>
           </template>
         </el-table-column>
         <el-table-column prop="sort" label="显示顺序" width="80" />
@@ -40,8 +48,15 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="50%" @close="resetForm">
       <el-form ref="menuFormRef" :model="menuForm" :rules="menuRules" label-width="100px">
         <el-form-item label="上级菜单" prop="parentId">
-          <el-tree-select v-model="menuForm.parentId" :data="menuTreeOptions" :props="{ label: 'name', value: 'id' }"
-            check-strictly placeholder="选择上级菜单" clearable />
+          <el-tree-select
+            v-model="menuForm.parentId"
+            :data="menuTreeOptions"
+            :props="{ label: 'name', value: 'id' }"
+            check-strictly
+            placeholder="选择上级菜单"
+            clearable
+            default-expand-all
+          />
         </el-form-item>
         <el-form-item label="菜单类型" prop="menuType">
           <el-radio-group v-model="menuForm.menuType">
@@ -59,8 +74,32 @@
         <el-form-item v-if="menuForm.menuType === 'C'" label="组件路径" prop="component">
           <el-input v-model="menuForm.component" placeholder="请输入组件路径" />
         </el-form-item>
-        <el-form-item label="权限标识" prop="permissions">
+        <el-form-item v-if="menuForm.menuType == 'F'" label="权限标识" prop="permissions">
           <el-input v-model="menuForm.permissions" placeholder="请输入权限标识" />
+        </el-form-item>
+        <el-form-item label="菜单图标" prop="icon">
+          <el-select
+            v-model="menuForm.icon"
+            filterable
+            placeholder="搜索或选择图标"
+            clearable
+          >
+            <el-option
+              v-for="(icon, name) in icons"
+              :key="name"
+              :label="name"
+              :value="name"
+            >
+              <div style="display: flex; align-items: center; gap: 8px">
+                <el-icon><component :is="icon" /></el-icon>
+                <span>{{ name }}</span>
+              </div>
+            </el-option>
+          </el-select>
+
+        </el-form-item>
+        <el-form-item label="备注信息" prop="remark">
+          <el-input v-model="menuForm.remark" placeholder="请输入备注信息" />
         </el-form-item>
         <el-form-item label="显示顺序" prop="sort">
           <el-input-number v-model="menuForm.sort" :min="0" />
@@ -95,6 +134,9 @@ import {
   updateMenuStatus
 } from '@/api/system/menu'
 import storage from '@/utils/storage'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
+const icons = ElementPlusIconsVue
 
 const userInfo = storage.getItem('userInfo')
 console.log('userInfo', userInfo)
@@ -115,6 +157,8 @@ const menuForm = reactive<MenuItem>({
   component: '',
   permissions: [],
   menuType: 'M',
+  icon: '',
+  remark: '',
   sort: 0,
   status: 1
 })
