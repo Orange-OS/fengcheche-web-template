@@ -44,10 +44,16 @@ service.interceptors.response.use(
 
     // 根据自己的业务逻辑修改这里的判断条件
     if (code === 200) {
-      return data
-    } else {
+      return Promise.resolve(data);
+    } else if (code === 400) {
+      ElMessage.warning(msg || '系统警告')
+      return Promise.reject(new Error(msg || '系统警告'))
+    } else if (code === 500) {
       ElMessage.error(msg || '系统错误')
       return Promise.reject(new Error(msg || '系统错误'))
+    } else {
+      ElMessage.info(msg || '未知编码')
+      return Promise.reject(new Error(msg || '未知编码'))
     }
   },
   (error) => {

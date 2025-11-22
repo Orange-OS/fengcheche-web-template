@@ -2,7 +2,7 @@
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { login } from '@/api/auth'
+import { login, getCaptcha } from '@/api/auth'
 import router from '@/router'
 import { useUserInfoStore } from '@/stores/userInfo'
 import { useTokenStore } from '@/stores/token'
@@ -17,18 +17,35 @@ const loading = ref(false)
 const formData = ref({
   username: '',
   password: '',
+  captcha: '',
+  captchaUuid: ''
 })
 
 const rules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, message: '用户名长度不能小于3位', trigger: 'blur' },
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' },
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ],
+  captcha: [
+    { required: true, message: '请输入验证码', trigger: 'blur' }
   ],
 }
+
+const captchaSrc = ref()
+const fetchCaptcha = async () => {
+  try {
+    const res = await getCaptcha()
+    captchaSrc.value = res.captchaBase64Image
+    formData.value.captchaUuid = res.captchaUuid
+  } catch (error: Error | unknown) {
+    console.log('error', error)
+  } finally {
+
+  }
+}
+fetchCaptcha()
 
 const handleLogin = async () => {
   if (!formRef.value) return
@@ -37,7 +54,7 @@ const handleLogin = async () => {
     await formRef.value.validate()
     loading.value = true
 
-    // 1. 登录获取token
+    // 1. 登录获取 token
     const { token, userInfo } = await login(formData.value)
 
     // 2. 保存用户信息
@@ -61,14 +78,20 @@ const handleLogin = async () => {
       <div class="login-div-header">
         <h2 class="login-title">登录</h2>
       </div>
-      <el-form ref="formRef" :model="formData" :rules="rules" label-width="80px" class="login-form">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="formData.username" placeholder="请输入用户名" :prefix-icon="User" style="width: 330px" />
+      <el-form ref="formRef" :model="formData" :rules="rules" class="login-form">
+        <el-form-item prop="username">
+          <el-input v-model="formData.username" placeholder="请输入用户名" :prefix-icon="User" />
         </el-form-item>
 
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="formData.password" type="password" placeholder="请输入密码" show-password :prefix-icon="Lock"
-            style="width: 330px" />
+        <el-form-item prop="password">
+          <el-input v-model="formData.password" type="password" placeholder="请输入密码" show-password :prefix-icon="Lock" />
+        </el-form-item>
+
+        <el-form-item prop="captcha">
+          <div class="captcha-wrapper">
+            <el-input v-model="formData.captcha" placeholder="请输入验证码" />
+            <img :src="captchaSrc" alt="验证码" class="captcha-img" @click="fetchCaptcha" />
+          </div>
         </el-form-item>
 
         <el-form-item>
@@ -111,6 +134,29 @@ const handleLogin = async () => {
     .login-form {
       .el-form-item {
         margin-bottom: 20px; // 调整表单项之间的间距
+      }
+
+      .el-input {
+        width: 100%; // 让输入框宽度充满父容器
+      }
+
+      .captcha-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+
+        .el-input {
+          flex: 1;
+        }
+
+        .captcha-img {
+          width: 120px;
+          height: 40px;
+          cursor: pointer;
+          border: 1px solid #dcdfe6;
+          border-radius: 4px;
+        }
       }
 
       .login-button {
