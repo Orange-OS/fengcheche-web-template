@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "dev": "vite --mode development",
+    "build": "vite build",
+    "build:production": "vite build --mode production",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
@@ -13,9 +14,11 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@handsontable/vue3": "^16.0.1",
     "@types/axios": "^0.14.4",
     "axios": "^1.7.9",
     "element-plus": "^2.9.1",
+    "handsontable": "^16.0.1",
     "maplibre-gl": "^5.5.0",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",

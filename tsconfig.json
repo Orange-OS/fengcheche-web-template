@@ -3,18 +3,12 @@
     "baseUrl": ".",
     // 这是根目录
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
       // 将 @ 映射到 src 目录
     }
   },
   "files": [],
-  "include": [
-    "env.d.ts",
-    "src/**/*",
-    "src/**/*.vue"
-  ],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "references": [
     {
       "path": "./tsconfig.node.json"

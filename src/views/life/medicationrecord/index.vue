@@ -134,10 +134,10 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { 
-  getMedicationRecordPage, 
-  addMedicationRecord, 
-  updateMedicationRecord, 
+import {
+  getMedicationRecordPage,
+  addMedicationRecord,
+  updateMedicationRecord,
   deleteMedicationRecord,
   getMedicationRecordList
 } from '@/api/life/medicationRecord'
@@ -201,23 +201,27 @@ const fetchData = async () => {
       pageSize: pageSize.value
     });
 
-    tableData.value = response.records;
-    total.value = response.total;
-    pageNum.value = response.current;
-    pageSize.value = response.size;
+    if (response != null) {
+      tableData.value = response.records;
+      total.value = response.total;
+      pageNum.value = response.current;
+      pageSize.value = response.size;
 
-    // 获取全部数据用于时间轴
-    const listResponse = await getMedicationRecordList({
-      medicineName: searchForm.medicineName,
-      startDate: searchForm.dateRange[0],
-      endDate: searchForm.dateRange[1]
-    });
-    
-    timelineData.value = listResponse;
-    
-    // 计算时间轴范围
-    calculateTimelineRange();
+      // 获取全部数据用于时间轴
+      const listResponse = await getMedicationRecordList({
+        medicineName: searchForm.medicineName,
+        startDate: searchForm.dateRange[0],
+        endDate: searchForm.dateRange[1]
+      });
 
+      timelineData.value = listResponse;
+
+      // 计算时间轴范围
+      calculateTimelineRange();
+
+    } else {
+      console.log('response', response)
+    }
   } catch (error) {
     console.error('获取数据失败:', error);
     ElMessage.error('获取数据失败，请重试');
@@ -233,12 +237,12 @@ const calculateTimelineRange = () => {
     timelineRange.end = '';
     return;
   }
-  
+
   // 按日期排序
-  const sortedData = [...timelineData.value].sort((a, b) => 
+  const sortedData = [...timelineData.value].sort((a, b) =>
     new Date(a.medicationTime).getTime() - new Date(b.medicationTime).getTime()
   );
-  
+
   timelineRange.start = sortedData[0].medicationTime;
   timelineRange.end = sortedData[sortedData.length - 1].medicationTime;
 }

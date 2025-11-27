@@ -1,8 +1,8 @@
 <template>
-  <template v-for="menu in menuList" :key="menu.id">
+  <template v-for="menu in  menuList " :key="menu.id">
     <!-- 目录渲染 -->
     <el-sub-menu
-      v-if="menu.visible === 1 && menu.status === 1 && (menu.menuType === 'M' || (menu.children && menu.children.length > 0))"
+      v-if="menu.visible === 1 && menu.status === 1 && menu.menuType === 'M' && (menu.children && menu.children.length > 0)"
       :index="menu.path">
       <template #title>
         <el-icon v-if="menu.icon">
@@ -15,7 +15,8 @@
     </el-sub-menu>
 
     <!-- 菜单项渲染 -->
-    <el-menu-item v-else-if="menu.visible === 1 && menu.status === 1" :index="menu.path" @click="handleMenuClick(menu)">
+    <el-menu-item v-else-if="menu.visible === 1 && menu.status === 1 && menu.menuType === 'C'" :index="menu.path"
+      @click="handleMenuClick(menu)">
       <el-icon v-if="menu.icon">
         <component :is="menu.icon" />
       </el-icon>

@@ -9,7 +9,7 @@ export interface MenuItem {
   icon?: string
   remark?: string
   children?: MenuItem[]
-  permissions?: string[]
+  permission?: string
   parentId?: number
   sort: number
 }

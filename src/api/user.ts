@@ -14,6 +14,54 @@ export interface UserForm {
   email: string
   mobile: string
   status: number
+  roleIds?: (number | string)[]
+  roleNames?: string | string[]
+}
+
+export interface SystemUserCreateForm {
+  username: string
+  password?: string
+  nickname: string
+  email: string
+  mobile: string
+  status: number
+  roleIds?: (number | string)[]
+}
+
+/**
+ * 新增用户
+ */
+export function createUser(data: SystemUserCreateForm) {
+  return request<void>({
+    url: '/system/user',
+    method: 'post',
+    data,
+  })
+}
+
+export interface SystemUserUpdateForm extends SystemUserCreateForm {
+  id: number
+}
+
+/**
+ * 修改用户
+ */
+export function updateUser(id: number, data: SystemUserUpdateForm) {
+  return request<void>({
+    url: `/system/user/${id}`,
+    method: 'put',
+    data,
+  })
+}
+
+/**
+ * 删除用户
+ */
+export function deleteUser(id: number) {
+  return request<void>({
+    url: `/system/user/${id}`,
+    method: 'delete',
+  })
 }
 
 /**
@@ -38,38 +86,6 @@ export function getUserInfo(id: number) {
 }
 
 /**
- * 新增用户
- */
-export function addUser(data: UserForm) {
-  return request<void>({
-    url: '/system/user',
-    method: 'post',
-    data,
-  })
-}
-
-/**
- * 更新用户
- */
-export function updateUser(id: number, data: UserForm) {
-  return request<void>({
-    url: `/system/user/${id}`,
-    method: 'put',
-    data,
-  })
-}
-
-/**
- * 删除用户
- */
-export function deleteUser(id: number) {
-  return request<void>({
-    url: `/system/user/${id}`,
-    method: 'delete',
-  })
-}
-
-/**
  * 批量删除用户
  */
 export function batchDeleteUsers(ids: number[]) {
@@ -88,5 +104,15 @@ export function updateUserStatus(id: number, status: number) {
     url: `/system/user/${id}/status`,
     method: 'put',
     data: { status },
+  })
+}
+
+/**
+ * 重置密码
+ */
+export function resetPassword(id: number) {
+  return request<void>({
+    url: `/system/user/reset-password/${id}`,
+    method: 'post'
   })
 }

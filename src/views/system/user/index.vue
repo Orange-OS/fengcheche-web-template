@@ -4,12 +4,7 @@
       <template #header>
         <div class="card-header">
           <div class="search-box">
-            <el-input
-              v-model="searchQuery"
-              placeholder="请输入用户名"
-              style="width: 300px"
-              @keyup.enter="handleSearch"
-            >
+            <el-input v-model="searchQuery" placeholder="请输入用户名" style="width: 300px" @keyup.enter="handleSearch">
               <template #append>
                 <el-button @click="handleSearch">搜索</el-button>
               </template>
@@ -17,36 +12,36 @@
           </div>
           <div class="operation-box">
             <el-button type="primary" @click="handleAdd">新增用户</el-button>
-            <el-button type="danger" :disabled="!selectedUsers.length" @click="handleBatchDelete"
-              >批量删除</el-button
-            >
+            <el-button type="danger" :disabled="!selectedUsers.length" @click="handleBatchDelete">批量删除</el-button>
           </div>
         </div>
       </template>
 
-      <el-table
-        :data="userList"
-        style="width: 100%"
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
+      <el-table :data="userList" border style="width: 100%" v-loading="loading"
+        @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="username" label="用户名" />
         <el-table-column prop="nickname" label="昵称" />
         <el-table-column prop="email" label="邮箱" />
         <el-table-column prop="mobile" label="手机号" />
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column label="角色" width="200">
           <template #default="{ row }">
-            <el-switch
-              v-model="row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="(val) => handleStatusChange(row, val)"
-            />
+            <el-tag v-for="(roleName, index) in getRoleNames(row)" :key="index"
+              style="margin-right: 5px; margin-bottom: 5px">
+              {{ roleName }}
+            </el-tag>
+            <span v-if="!getRoleNames(row).length" style="color: #909399">未分配角色</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="status" label="状态" width="120">
           <template #default="{ row }">
+            <el-switch v-model="row.status" :active-value="1" :inactive-value="0"
+              @change="(val) => handleStatusChange(row, val)" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="260">
+          <template #default="{ row }">
+            <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
@@ -55,28 +50,11 @@
     </el-card>
 
     <!-- 用户表单对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增用户' : '编辑用户'"
-      width="480px"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      destroy-on-close
-      class="user-dialog"
-    >
-      <el-form
-        ref="userFormRef"
-        :model="userForm"
-        :rules="userRules"
-        label-width="80px"
-        class="user-form"
-      >
+    <el-dialog v-model="dialogVisible" :title="dialogType === 'add' ? '新增用户' : '编辑用户'" width="480px"
+      :close-on-click-modal="false" :close-on-press-escape="false" destroy-on-close class="user-dialog">
+      <el-form ref="userFormRef" :model="userForm" :rules="userRules" label-width="80px" class="user-form">
         <el-form-item label="用户名" prop="username">
-          <el-input
-            v-model="userForm.username"
-            :disabled="dialogType === 'edit'"
-            placeholder="请输入用户名"
-          />
+          <el-input v-model="userForm.username" :disabled="dialogType === 'edit'" placeholder="请输入用户名" />
         </el-form-item>
 
         <el-form-item label="昵称" prop="nickname">
@@ -84,12 +62,7 @@
         </el-form-item>
 
         <el-form-item label="密码" prop="password" v-if="dialogType === 'add'">
-          <el-input
-            v-model="userForm.password"
-            type="password"
-            show-password
-            placeholder="请输入密码"
-          />
+          <el-input v-model="userForm.password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
 
         <el-form-item label="邮箱" prop="email">
@@ -100,15 +73,17 @@
           <el-input v-model="userForm.mobile" placeholder="请输入手机号" />
         </el-form-item>
 
+        <el-form-item label="角色" prop="roleIds">
+          <el-select v-model="userForm.roleIds" multiple placeholder="请选择角色" style="width: 100%" collapse-tags
+            collapse-tags-tooltip>
+            <el-option v-for="role in roleList" :key="role.id" :label="role.name" :value="role.id" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="状态" prop="status">
           <div class="switch-wrapper">
-            <el-switch
-              v-model="userForm.status"
-              :active-value="1"
-              :inactive-value="0"
-              active-text="启用"
-              inactive-text="禁用"
-            />
+            <el-switch v-model="userForm.status" :active-value="1" :inactive-value="0" active-text="启用"
+              inactive-text="禁用" />
           </div>
         </el-form-item>
       </el-form>
@@ -128,14 +103,20 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
-  getUserList,
-  addUser,
+  createUser,
   updateUser,
   deleteUser,
   batchDeleteUsers,
   updateUserStatus,
+  resetPassword,
   type UserForm,
+  type SystemUserCreateForm,
 } from '@/api/user'
+import {
+  getRoleList,
+  type SystemRole
+} from '@/api/system/role'
+import { getUserRoleList } from '@/api/system/user-role-api'
 
 const loading = ref(false)
 const userList = ref<UserForm[]>([])
@@ -144,6 +125,7 @@ const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const userFormRef = ref<FormInstance>()
 const selectedUsers = ref<UserForm[]>([])
+const roleList = ref<SystemRole[]>([])
 
 const userForm = ref<UserForm>({
   username: '',
@@ -152,6 +134,7 @@ const userForm = ref<UserForm>({
   email: '',
   mobile: '',
   status: 1,
+  roleIds: []
 })
 
 const userRules: FormRules = {
@@ -172,13 +155,17 @@ const userRules: FormRules = {
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
   ],
+  roleIds: [
+    { required: true, message: '请选择角色', trigger: 'change' },
+    { type: 'array', min: 1, message: '至少选择一个角色', trigger: 'change' },
+  ],
 }
 
-// 获取用户列表
-const fetchUserList = async () => {
+// 获取用户角色列表
+const fetchUserRoleList = async () => {
   loading.value = true
   try {
-    const data = await getUserList({
+    const data = await getUserRoleList({
       username: searchQuery.value,
     })
     userList.value = Array.isArray(data) ? data : []
@@ -186,7 +173,7 @@ const fetchUserList = async () => {
     if (error instanceof Error) {
       ElMessage.error(error.message)
     } else {
-      ElMessage.error('获取用户列表失败')
+      ElMessage.error('获取用户角色列表失败')
     }
   } finally {
     loading.value = false
@@ -195,7 +182,59 @@ const fetchUserList = async () => {
 
 // 搜索
 const handleSearch = () => {
-  fetchUserList()
+  fetchUserRoleList()
+}
+
+// 获取角色列表
+const fetchRoleList = async () => {
+  try {
+    const data = await getRoleList({})
+    roleList.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    if (error instanceof Error) {
+      ElMessage.error(error.message)
+    } else {
+      ElMessage.error('获取角色列表失败')
+    }
+  }
+}
+
+// 获取角色名称数组（用于表格显示）
+const getRoleNames = (row: UserForm): string[] => {
+  if (row.roleNames) {
+    if (Array.isArray(row.roleNames)) {
+      return row.roleNames
+    } else if (typeof row.roleNames === 'string') {
+      return row.roleNames.split(',').filter(Boolean)
+    }
+  }
+  // 如果没有 roleNames，尝试根据 roleIds 查找
+  if (row.roleIds && Array.isArray(row.roleIds) && row.roleIds.length > 0) {
+    return row.roleIds
+      .map((id) => {
+        const role = roleList.value.find((r) => r.id === id || String(r.id) === String(id))
+        return role?.name
+      })
+      .filter((name): name is string => Boolean(name))
+  }
+  return []
+}
+
+const buildUserPayload = (includePassword: boolean): SystemUserCreateForm => {
+  const payload: SystemUserCreateForm = {
+    username: userForm.value.username,
+    nickname: userForm.value.nickname,
+    email: userForm.value.email,
+    mobile: userForm.value.mobile,
+    status: userForm.value.status,
+    roleIds: Array.isArray(userForm.value.roleIds) ? userForm.value.roleIds : [],
+  }
+
+  if (includePassword && userForm.value.password) {
+    payload.password = userForm.value.password
+  }
+
+  return payload
 }
 
 // 新增用户
@@ -208,6 +247,7 @@ const handleAdd = () => {
     email: '',
     mobile: '',
     status: 1,
+    roleIds: []
   }
   dialogVisible.value = true
 }
@@ -216,6 +256,35 @@ const handleAdd = () => {
 const handleEdit = (row: UserForm) => {
   dialogType.value = 'edit'
   userForm.value = { ...row }
+
+  // 如果后端返回的是 roleNames（字符串或数组），需要转换为 roleIds
+  if (!userForm.value.roleIds || userForm.value.roleIds.length === 0) {
+    if (row.roleNames) {
+      let names: string[] = []
+      if (Array.isArray(row.roleNames)) {
+        names = row.roleNames
+      } else if (typeof row.roleNames === 'string') {
+        names = row.roleNames.split(',').filter(Boolean)
+      }
+
+      const ids = names
+        .map((name) => {
+          const role = roleList.value.find((r) => r.name === name.trim())
+          return role?.id
+        })
+        .filter((id): id is number | string => id !== undefined)
+
+      if (ids.length > 0) {
+        userForm.value.roleIds = ids
+      }
+    }
+  }
+
+  // 确保 roleIds 是数组
+  if (!Array.isArray(userForm.value.roleIds)) {
+    userForm.value.roleIds = []
+  }
+
   dialogVisible.value = true
 }
 
@@ -231,12 +300,34 @@ const handleDelete = (row: UserForm) => {
     try {
       await deleteUser(row.id)
       ElMessage.success('删除成功')
-      fetchUserList()
+      fetchUserRoleList()
     } catch (error) {
       if (error instanceof Error) {
         ElMessage.error(error.message)
       } else {
         ElMessage.error('删除失败')
+      }
+    }
+  })
+}
+
+// 重置密码
+const handleResetPassword = (row: UserForm) => {
+  if (!row.id) return
+
+  ElMessageBox.confirm('确认重置该用户密码吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(async () => {
+    try {
+      await resetPassword(row.id)
+      ElMessage.success('密码已重置')
+    } catch (error) {
+      if (error instanceof Error) {
+        ElMessage.error(error.message)
+      } else {
+        ElMessage.error('重置密码失败')
       }
     }
   })
@@ -258,7 +349,7 @@ const handleBatchDelete = () => {
       await batchDeleteUsers(userIds)
       ElMessage.success('批量删除成功')
       selectedUsers.value = []
-      fetchUserList()
+      fetchUserRoleList()
     } catch (error) {
       if (error instanceof Error) {
         ElMessage.error(error.message)
@@ -294,14 +385,18 @@ const handleSubmit = async () => {
     if (valid) {
       try {
         if (dialogType.value === 'add') {
-          await addUser(userForm.value)
+          await createUser(buildUserPayload(true))
         } else if (userForm.value.id) {
-          await updateUser(userForm.value.id, userForm.value)
+          const updatePayload = {
+            ...buildUserPayload(false),
+            id: userForm.value.id,
+          }
+          await updateUser(userForm.value.id, updatePayload)
         }
 
         ElMessage.success(dialogType.value === 'add' ? '新增成功' : '更新成功')
         dialogVisible.value = false
-        fetchUserList()
+        fetchUserRoleList()
       } catch (error) {
         if (error instanceof Error) {
           ElMessage.error(error.message)
@@ -319,7 +414,8 @@ const handleSelectionChange = (selection: UserForm[]) => {
 }
 
 onMounted(() => {
-  fetchUserList()
+  fetchUserRoleList()
+  fetchRoleList()
 })
 </script>
 
@@ -362,6 +458,10 @@ onMounted(() => {
     }
 
     .el-input {
+      width: 100%;
+    }
+
+    .el-select {
       width: 100%;
     }
 

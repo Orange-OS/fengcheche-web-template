@@ -11,9 +11,15 @@ import storage from '@/utils/storage.ts'
 import { ElMessage } from 'element-plus'
 // 引入公共样式
 import '@/assets/scss/index.scss'
+import '@/assets/styles/global.css'   // 引入全局样式
 
 const pinia = createPinia()
 const app = createApp(App)
+
+const appTitle = import.meta.env.VITE_APP_TITLE || 'fengcheche-app-template'
+if (appTitle) {
+  document.title = appTitle
+}
 
 // 开发环境下添加更多的调试信息
 if (import.meta.env.DEV) {

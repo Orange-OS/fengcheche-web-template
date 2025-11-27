@@ -1,4 +1,7 @@
 <template>
+  <div></div>
+</template>
+<!-- <template>
   <div class="statistics-container">
     <el-row :gutter="20">
       <el-col :span="6" v-for="card in statisticsCards" :key="card.title">
@@ -209,4 +212,4 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
 }
-</style>
+</style> -->

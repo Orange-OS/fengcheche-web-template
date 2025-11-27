@@ -47,13 +47,14 @@ service.interceptors.response.use(
       return Promise.resolve(data);
     } else if (code === 400) {
       ElMessage.warning(msg || '系统警告')
-      return Promise.reject(new Error(msg || '系统警告'))
+      return data
+      // return Promise.reject(new Error(msg || '系统警告'))
     } else if (code === 500) {
       ElMessage.error(msg || '系统错误')
-      return Promise.reject(new Error(msg || '系统错误'))
+      return data
     } else {
       ElMessage.info(msg || '未知编码')
-      return Promise.reject(new Error(msg || '未知编码'))
+      return data // 不抛出异常，避免重复处理
     }
   },
   (error) => {
@@ -85,8 +86,8 @@ service.interceptors.response.use(
 )
 
 // 封装请求方法
-const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
-  return service(config) as unknown as Promise<T>
+const request = <T = unknown>(config: AxiosRequestConfig): Promise<T> => {
+  return service.request<T, T>(config)
 }
 
 export default request

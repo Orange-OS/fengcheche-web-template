@@ -8,34 +8,34 @@
         </div>
       </template>
 
-      <el-table :data="menuList" style="width: 100%" max-height="940px" v-loading="loading" row-key="id"
+      <el-table :data="menuList" border style="width: 100%" max-height="940px" v-loading="loading" row-key="id"
         :tree-props="{ children: 'children' }">
-        <el-table-column prop="name" label="菜单名称" />
-        <el-table-column prop="path" label="路由路径" />
-        <el-table-column prop="component" label="组件路径" />
-        <el-table-column prop="permission" label="权限标识" />
-        <el-table-column prop="menuType" label="类型">
+        <el-table-column prop="name" label="菜单名称" width="250" />
+        <el-table-column prop="menuType" label="类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="row?.menuType === 'M' ? 'primary' : row?.menuType === 'C' ? 'success' : 'info'">
+            <el-tag :type="row?.menuType === 'M' ? 'primary' : row?.menuType === 'C' ? 'success' : 'warning'">
               {{ row?.menuType === 'M' ? '目录' : row?.menuType === 'C' ? '菜单' : '按钮' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="icon" label="菜单图标">
+        <el-table-column prop="icon" label="图标" width="100">
           <template #default="{ row }">
             <el-icon v-if="row.icon">
               <component :is="row.icon" />
             </el-icon>
-            <span v-else>无图标</span>
+            <span v-else></span>
           </template>
         </el-table-column>
-        <el-table-column prop="sort" label="显示顺序" width="80" />
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="path" label="路由路径" />
+        <el-table-column prop="component" label="组件路径" />
+        <el-table-column prop="permission" label="权限标识" />
+        <el-table-column prop="sort" label="显示顺序" width="100" />
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(row)" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="150">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
@@ -44,19 +44,12 @@
       </el-table>
     </el-card>
 
-    <!-- 新增/编辑菜单对话框 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="50%" @close="resetForm">
+    <!-- 新增/编辑菜单抽屉 -->
+    <el-drawer v-model="dialogVisible" :title="dialogTitle" size="25%" @close="resetForm">
       <el-form ref="menuFormRef" :model="menuForm" :rules="menuRules" label-width="100px">
         <el-form-item label="上级菜单" prop="parentId">
-          <el-tree-select
-            v-model="menuForm.parentId"
-            :data="menuTreeOptions"
-            :props="{ label: 'name', value: 'id' }"
-            check-strictly
-            placeholder="选择上级菜单"
-            clearable
-            default-expand-all
-          />
+          <el-tree-select v-model="menuForm.parentId" :data="menuTreeOptions" :props="{ label: 'name', value: 'id' }"
+            check-strictly placeholder="选择上级菜单" clearable default-expand-all />
         </el-form-item>
         <el-form-item label="菜单类型" prop="menuType">
           <el-radio-group v-model="menuForm.menuType">
@@ -74,24 +67,21 @@
         <el-form-item v-if="menuForm.menuType === 'C'" label="组件路径" prop="component">
           <el-input v-model="menuForm.component" placeholder="请输入组件路径" />
         </el-form-item>
-        <el-form-item v-if="menuForm.menuType == 'F'" label="权限标识" prop="permissions">
-          <el-input v-model="menuForm.permissions" placeholder="请输入权限标识" />
+        <el-form-item v-if="menuForm.menuType == 'F'" label="权限标识" prop="permission">
+          <el-input v-model="menuForm.permission" style="width: 95%" placeholder="请输入权限标识" />
+          <el-tooltip content="用于权限控制的唯一标识符，后端@SaCheckPermission中的权限字符串" placement="top">
+            <el-icon style="margin-left: 8px; color: #909399;">
+              <QuestionFilled />
+            </el-icon>
+          </el-tooltip>
         </el-form-item>
-        <el-form-item label="菜单图标" prop="icon">
-          <el-select
-            v-model="menuForm.icon"
-            filterable
-            placeholder="搜索或选择图标"
-            clearable
-          >
-            <el-option
-              v-for="(icon, name) in icons"
-              :key="name"
-              :label="name"
-              :value="name"
-            >
+        <el-form-item v-if="menuForm.menuType !== 'F'" label="菜单图标" prop="icon">
+          <el-select v-model="menuForm.icon" filterable placeholder="搜索或选择图标" clearable>
+            <el-option v-for="(icon, name) in icons" :key="name" :label="name" :value="name">
               <div style="display: flex; align-items: center; gap: 8px">
-                <el-icon><component :is="icon" /></el-icon>
+                <el-icon>
+                  <component :is="icon" />
+                </el-icon>
                 <span>{{ name }}</span>
               </div>
             </el-option>
@@ -99,7 +89,8 @@
 
         </el-form-item>
         <el-form-item label="备注信息" prop="remark">
-          <el-input v-model="menuForm.remark" placeholder="请输入备注信息" />
+          <el-input v-model="menuForm.remark" type="textarea" :rows="4" :maxlength="500" show-word-limit
+            placeholder="请输入备注信息" />
         </el-form-item>
         <el-form-item label="显示顺序" prop="sort">
           <el-input-number v-model="menuForm.sort" :min="0" />
@@ -112,12 +103,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
+        <div class="drawer-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitForm">确定</el-button>
-        </span>
+        </div>
       </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -155,7 +146,7 @@ const menuForm = reactive<MenuItem>({
   name: '',
   path: '',
   component: '',
-  permissions: [],
+  permission: '',
   menuType: 'M',
   icon: '',
   remark: '',
@@ -168,7 +159,6 @@ const menuRules = reactive<FormRules>({
   name: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }],
   path: [{ required: true, message: '请输入路由路径', trigger: 'blur' }],
   component: [{ required: true, message: '请输入组件路径', trigger: 'blur' }],
-  // permissions: [{ required: true, message: '请输入权限标识', trigger: 'blur' }],
   menuType: [{ required: true, message: '请选择菜单类型', trigger: 'change' }]
 })
 
@@ -259,7 +249,7 @@ const resetForm = () => {
     name: '',
     path: '',
     component: '',
-    permissions: '',
+    permission: '',
     menuType: 'M',
     sort: 0,
     status: 1
@@ -280,5 +270,12 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 20px;
 }
 </style>

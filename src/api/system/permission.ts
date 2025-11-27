@@ -15,7 +15,7 @@ export interface PermissionPageQuery {
 }
 
 // 权限数据类型
-export interface SystemPermission{
+export interface SystemPermission {
   id?: string | number
   name: string
   code: string
@@ -57,12 +57,16 @@ export function addPermission(data: SystemRole) {
   })
 }
 
+export interface PermissionTreeUpdateForm {
+  permissionIdList: number[]
+}
+
 /**
- * 更新权限
+ * 修改权限树
  */
-export function updatePermission(data: SystemRole) {
+export function updatePermissionTree(roleId: number, data: PermissionTreeUpdateForm) {
   return request({
-    url: `/system/permission/${data.id}`,
+    url: `/system/permission/${roleId}`,
     method: 'put',
     data,
   })
@@ -86,6 +90,22 @@ export function updatePermissionStatus(id: number, status: number) {
     url: `/system/permission/${id}/status`,
     method: 'put',
     data: { status },
+  })
+}
+
+export interface PermissionTreeVO {
+  roleId?: number
+  permissionTree: MenuItem[]
+  selectedPermissionIdList: number[]
+}
+
+/**
+ * 获取权限树
+ */
+export function getPermissionTree(roleId: number) {
+  return request<PermissionTreeVO>({
+    url: `/system/permission/tree/${roleId}`,
+    method: 'get'
   })
 }
 

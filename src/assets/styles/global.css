@@ -1,0 +1,13 @@
+@font-face {
+  font-family: 'AlibabaHealthFont';
+  src: url('@/assets/fonts/AlibabaHealthFont2.0CN-45R.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AlibabaHealthFont';
+  src: url('@/assets/fonts/AlibabaHealthFont2.0CN-85B.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
