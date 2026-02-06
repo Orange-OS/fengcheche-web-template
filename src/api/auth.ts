@@ -9,7 +9,12 @@ export interface LoginForm {
   captchaUuid?: string; // 验证码唯一标识
 }
 
-export const getCaptcha = () => {
+export interface CaptchaVO {
+  captchaUuid: string;
+  captchaBase64Image: string;
+}
+
+export const getCaptcha = (): Promise<CaptchaVO> => {
   return request({
     url: '/system-captcha/generate',
     method: 'get'
@@ -37,15 +42,6 @@ export function logout() {
 export const getMenuList = (): Promise<MenuItem[]> => {
   return request({
     url: '/system/auth/menu-list',
-    method: 'get',
-    data: {},
+    method: 'get'
   })
-}
-
-export const getPermissionList = () => {
-  return request({
-    url: '/system/auth/permission-list',
-    method: 'get',
-    data: {},
-  }).then((res) => res.data)
 }

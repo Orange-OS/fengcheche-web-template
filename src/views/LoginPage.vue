@@ -80,16 +80,17 @@ const handleLogin = async () => {
       </div>
       <el-form ref="formRef" :model="formData" :rules="rules" class="login-form">
         <el-form-item prop="username">
-          <el-input v-model="formData.username" placeholder="请输入用户名" :prefix-icon="User" />
+          <el-input v-model="formData.username" placeholder="请输入用户名" :prefix-icon="User" size="large" />
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="formData.password" type="password" placeholder="请输入密码" show-password :prefix-icon="Lock" />
+          <el-input v-model="formData.password" type="password" placeholder="请输入密码" show-password :prefix-icon="Lock"
+            size="large" />
         </el-form-item>
 
         <el-form-item prop="captcha">
           <div class="captcha-wrapper">
-            <el-input v-model="formData.captcha" placeholder="请输入验证码" />
+            <el-input v-model="formData.captcha" placeholder="请输入验证码" size="large" />
             <img :src="captchaSrc" alt="验证码" class="captcha-img" @click="fetchCaptcha" />
           </div>
         </el-form-item>
@@ -110,7 +111,10 @@ const handleLogin = async () => {
   justify-content: center; // 水平居中
   align-items: center; // 垂直居中
   height: 100vh;
-  background-color: #f0f2f5; // 添加一个柔和的背景色
+  background-image: url('@/assets/images/login.png');
+  background-size: cover; // 背景图片覆盖整个容器
+  background-position: center; // 背景图片居中
+  background-repeat: no-repeat; // 不重复
 
   .login-div {
     width: 450px;

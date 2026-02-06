@@ -1,4 +1,4 @@
-# fengcheche-template
+# fengcheche-web-template
 
 ```sh
 npm run build:development
