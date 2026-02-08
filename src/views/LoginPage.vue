@@ -59,7 +59,9 @@ const handleLogin = async () => {
 
     // 2. 保存用户信息
     tokenStore.setToken(token)
-    userInfoStore.setUserInfo(userInfo)
+    userInfoStore.setUserInfo({
+      ...userInfo
+    })
 
     // 3. 跳转到首页
     ElMessage.success('登录成功')
