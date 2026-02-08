@@ -4,12 +4,7 @@
     <div class="chat-list">
       <h3>聊天列表
         <el-badge v-if="totalUnreadCount > 0" :value="totalUnreadCount" class="total-unread-badge" />
-        <el-button
-          type="primary"
-          size="small"
-          @click="showUserDialog = true"
-          style="float: right; margin-left: 10px;"
-        >
+        <el-button type="primary" size="small" @click="showUserDialog = true" style="float: right; margin-left: 10px;">
           发起聊天
         </el-button>
       </h3>
@@ -17,9 +12,9 @@
       <el-scrollbar height="calc(100vh - 140px)">
         <div class="chat-item" v-for="chat in filteredChats" :key="chat.peerUserId" @click="selectChat(chat)"
           :class="{ active: selectedChat?.peerUserId === chat.peerUserId }">
-          <el-avatar :size="32" :src="chat.peerAvatar">{{ chat.peerUsername?.charAt(0) }}</el-avatar>
+          <el-avatar :size="32" :src="chat.peerAvatar">{{ chat.peerNickname?.charAt(0) }}</el-avatar>
           <div class="chat-info">
-            <div class="name">{{ chat.peerUsername }}</div>
+            <div class="name">{{ chat.peerNickname }}</div>
             <div class="last-message" v-if="chat.lastMessage">{{ chat.lastMessage }}</div>
             <div class="last-message-time" v-if="chat.lastMessageTime">{{ formatTime(chat.lastMessageTime) }}</div>
           </div>
@@ -35,7 +30,7 @@
         <div class="chat-header">
           <el-avatar :size="40" :src="selectedChat.peerAvatar">{{ selectedChat.peerUsername?.charAt(0) }}</el-avatar>
           <div class="user-info">
-            <div class="name">{{ selectedChat.peerUsername }}</div>
+            <div class="name">{{ selectedChat.peerNickname }}</div>
             <div class="status" :class="{ online: selectedChat.online }">{{ selectedChat.online ? '在线' : '离线' }}</div>
           </div>
         </div>
@@ -46,8 +41,8 @@
             <div class="messages-list">
               <div v-for="message in messages" :key="message.id" class="message-item"
                 :class="{ 'message-own': message.fromUserId === currentUserId }">
-                <el-avatar v-if="!message.isOwn" :size="32">{{ message.fromUsername?.charAt(0)
-                }}</el-avatar>
+                <el-avatar :src="message.fromAvatar" v-if="!message.isOwn" :size="32">{{
+                  message.fromNickname?.charAt(0) }}</el-avatar>
                 <div class="message-content">
                   <div class="message-bubble" :class="{ 'message-own-bubble': message.isOwn }">
                     <div class="message-text">{{ message.content }}</div>
@@ -84,34 +79,21 @@
     </div>
 
     <!-- 发起聊天用户选择对话框 -->
-    <el-dialog
-      v-model="showUserDialog"
-      title="选择聊天用户"
-      width="600px"
-      :before-close="handleUserDialogClose"
-    >
+    <el-dialog v-model="showUserDialog" title="选择聊天用户" width="600px" :before-close="handleUserDialogClose">
       <div class="user-select-dialog">
-        <el-input
-          v-model="userSearchText"
-          placeholder="搜索用户"
-          clearable
-          class="user-search-input"
-        >
+        <el-input v-model="userSearchText" placeholder="搜索用户" clearable class="user-search-input">
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
           </template>
         </el-input>
 
         <el-scrollbar height="400px" class="user-list-scroll">
-          <div
-            v-for="user in filteredUsers"
-            :key="user.id"
-            class="user-select-item"
-            @click="selectUserToChat(user)"
-          >
-            <el-avatar :size="40" :src="user.avatar">{{ user.name?.charAt(0) }}</el-avatar>
+          <div v-for="user in filteredUsers" :key="user.id" class="user-select-item" @click="selectUserToChat(user)">
+            <el-avatar :size="40" :src="user.avatar">{{ user.nickname?.charAt(0) }}</el-avatar>
             <div class="user-select-info">
-              <div class="user-name">{{ user.name }}</div>
+              <div class="user-name">{{ user.nickname }}</div>
               <div class="user-email" v-if="user.email">{{ user.email }}</div>
             </div>
             <el-button type="primary" size="small" @click.stop="selectUserToChat(user)">
@@ -125,21 +107,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Loading, Search } from '@element-plus/icons-vue'
-import { sendMessage as sendChatMessage, getChatHistory, getChatList, getUnReadCount, type SystemChatSendMessageForm, type SystemChatGetChatHistoryForm, type SystemChatGetChatHistoryVO, type SystemChatListVO } from '@/api/system/chat'
+import { getChatHistory, getChatList, getUnReadCount, type SystemChatGetChatHistoryForm, type SystemChatGetChatHistoryVO, type SystemChatVO, type SystemChatMessageVO, type SystemChatSendMessageForm } from '@/api/system/chat'
 import { getUserList } from '@/api/user'
-import { useUserInfoStore } from '@/stores/userInfo'
 import { useTokenStore } from '@/stores/token'
+import { useUserInfoStore } from '@/stores/userInfo'
+import { Loading, Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 
 // 响应式数据
 const searchText = ref('')
-const selectedChat = ref<SystemChatListVO | null>(null)
-const messages = ref<Message[]>([])
+const selectedChat = ref<SystemChatVO | null>(null)
+const messages = ref<SystemChatMessageVO[]>([])
 const newMessage = ref('')
-const chats = ref<SystemChatListVO[]>([])
+const chats = ref<SystemChatVO[]>([])
 const loadingHistory = ref(false)
 const totalUnreadCount = ref(0)
 const messagesContainer = ref<HTMLElement>()
@@ -149,49 +131,23 @@ const scrollbarRef = ref()
 const showUserDialog = ref(false)
 const userSearchText = ref('')
 const allUsers = ref<User[]>([])
-const loadingUsers = ref(false)
+const loadingChatUsers = ref(false)
 
 // 获取当前用户信息
 const userStore = useUserInfoStore()
 const tokenStore = useTokenStore()
 const currentUserId = computed(() => {
-  // 这里需要根据你的用户信息结构来获取用户ID
-  // 暂时返回一个默认值，你需要根据实际情况修改
-  return 1 // TODO: 从用户信息中获取正确的用户ID
+  return userStore.userInfo?.id
 })
 
 // WebSocket 连接
 let websocket: WebSocket | null = null
 
 // 接口定义
-interface Message {
-  id: number | string
-  fromUserId: number
-  fromUsername: string
-  toUserId: number
-  content: string
-  sendTime: string
-  isOwn?: boolean
-}
-
-interface WebSocketMessage {
-  type: string
-  message?: Partial<Message>
-  userId?: number
-  online?: boolean
-}
-
 interface User {
-  id: number
-  name: string
-  avatar?: string
-  email?: string
-}
-
-interface RawUserData {
   id?: number
-  nickname?: string
   username?: string
+  nickname?: string
   avatar?: string
   email?: string
 }
@@ -207,24 +163,24 @@ const filteredChats = computed(() => {
 const filteredUsers = computed(() => {
   if (!userSearchText.value) return allUsers.value
   return allUsers.value.filter(user =>
-    user.name.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
+    user.username.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
     (user.email && user.email.toLowerCase().includes(userSearchText.value.toLowerCase()))
   )
 })
 
-// 加载所有用户列表
-const loadAllUsers = async () => {
+// 加载可聊天用户列表
+const loadChatUsers = async () => {
   try {
-    loadingUsers.value = true
+    loadingChatUsers.value = true
     const response = await getUserList()
-    // 处理返回的数据，可能直接是数组或包含 data 属性的对象
-    const userList = Array.isArray(response) ? response : (response as { data?: unknown[] }).data || []
-    // 转换用户数据格式，并排除当前用户
-    allUsers.value = userList
-      .filter((user: RawUserData) => user.id !== currentUserId.value)
-      .map((user: RawUserData) => ({
-        id: user.id || 0,
-        name: user.nickname || user.username || '未知用户',
+    console.log(currentUserId.value)
+    console.log(response)
+    allUsers.value = response
+      .filter(user => user.id !== currentUserId.value)
+      .map((user: User) => ({
+        id: user.id,
+        username: user.username,
+        nickname: user.nickname || '未知用户',
         avatar: user.avatar,
         email: user.email
       }))
@@ -232,7 +188,7 @@ const loadAllUsers = async () => {
     console.error('加载用户列表失败:', error)
     ElMessage.error('加载用户列表失败')
   } finally {
-    loadingUsers.value = false
+    loadingChatUsers.value = false
   }
 }
 
@@ -246,10 +202,10 @@ const selectUserToChat = async (user: User) => {
       await selectChat(existingChat)
     } else {
       // 如果不存在，创建新的聊天
-      const newChat: SystemChatListVO = {
+      const newChat: SystemChatVO = {
         peerUserId: user.id,
-        peerUsername: user.name,
-        peerNickname: user.name,
+        peerUsername: user.username,
+        peerNickname: user.nickname,
         peerAvatar: user.avatar || '',
         lastMessage: '',
         lastMessageTime: '',
@@ -264,7 +220,7 @@ const selectUserToChat = async (user: User) => {
     showUserDialog.value = false
     userSearchText.value = ''
 
-    ElMessage.success(`已与 ${user.name} 发起聊天`)
+    ElMessage.success(`已与 ${user.nickname} 发起聊天`)
   } catch (error) {
     console.error('发起聊天失败:', error)
     ElMessage.error('发起聊天失败')
@@ -294,7 +250,7 @@ const formatTime = (time: string) => {
 }
 
 // 选择用户
-const selectChat = async (chat: SystemChatListVO) => {
+const selectChat = async (chat: SystemChatVO) => {
   selectedChat.value = chat
   // 重置未读消息数，从总未读消息数量中减去
   const previousUnreadCount = chat.unreadCount ?? 0
@@ -345,32 +301,16 @@ const sendMessage = async () => {
       content: newMessage.value.trim()
     }
 
-    await sendChatMessage(messageData)
-
-    // 添加到本地消息列表
-    const message: Message = {
-      id: Date.now().toString(),
-      fromUserId: currentUserId.value!,
-      toUserId: selectedChat.value?.peerUserId ?? 0,
-      fromUsername: userStore.userInfo?.username || '',
-      content: newMessage.value.trim(),
-      sendTime: new Date().toISOString(),
-      isOwn: true
-    }
-
-    messages.value.push(message)
+    console.log(messageData)
     newMessage.value = ''
 
     // 滚动到底部
     await nextTick()
     scrollToBottom()
 
-    // 通过 WebSocket 发送消息（如果需要）
+    // 通过 WebSocket 发送消息
     if (websocket && websocket.readyState === WebSocket.OPEN) {
-      websocket.send(JSON.stringify({
-        type: 'sendMessage',
-        data: messageData
-      }))
+      websocket.send(JSON.stringify(messageData))
     }
   } catch (error) {
     console.error('发送消息失败:', error)
@@ -390,7 +330,7 @@ const initWebSocket = () => {
   // 这里需要根据你的后端 WebSocket 地址进行配置
   const userId = currentUserId.value || 1
   const token = tokenStore.token || ''
-  const wsUrl = `ws://localhost:8090/fengcheche/ws/chat?userId=${userId}&token=${token}`
+  const wsUrl = `ws://localhost:8080/fengcheche/ws/chat?userId=${userId}&token=${token}`
 
   websocket = new WebSocket(wsUrl)
 
@@ -401,6 +341,7 @@ const initWebSocket = () => {
   websocket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data)
+      console.log('接收到新消息：', data)
       handleWebSocketMessage(data)
     } catch (error) {
       console.error('解析 WebSocket 消息失败:', error)
@@ -418,41 +359,46 @@ const initWebSocket = () => {
 }
 
 // 更新聊天用户在线状态
-const updateChatStatus = (userId: number, online: boolean) => {
-  const chat = chats.value.find(c => c.peerUserId === userId)
-  if (chat) {
-    chat.online = online
-  }
-}
+// const updateChatStatus = (userId: number, online: boolean) => {
+//   const chat = chats.value.find(c => c.peerUserId === userId)
+//   if (chat) {
+//     chat.online = online
+//   }
+// }
 
 // 处理 WebSocket 消息
-const handleWebSocketMessage = (data: WebSocketMessage) => {
-  switch (data.type) {
-    case 'newMessage':
-      if (data.message) {
-        handleNewMessage(data.message)
-      }
-      break
-    case 'userStatus':
-      if (data.userId !== undefined && data.online !== undefined) {
-        updateChatStatus(data.userId, data.online)
-      }
-      break
-    default:
-      console.log('未知消息类型:', data.type)
+const handleWebSocketMessage = (data: SystemChatMessageVO) => {
+  // switch (data.type) {
+  //   case 'newMessage':
+  //     if (data.message) {
+  //       handleNewMessage(data.message)
+  //     }
+  //     break
+  //   case 'userStatus':
+  //     if (data.userId !== undefined && data.online !== undefined) {
+  //       updateChatStatus(data.userId, data.online)
+  //     }
+  //     break
+  //   default:
+  //     console.log('未知消息类型:', data)
+  // }
+  if (data) {
+    handleNewMessage(data)
   }
 }
 
 // 处理新消息
-const handleNewMessage = (message: Partial<Message>) => {
-  const newMsg: Message = {
-    id: message.id || Date.now().toString(),
-    fromUserId: message.fromUserId!,
-    toUserId: message.toUserId!,
-    fromUsername: message.fromUsername || '',
-    content: message.content || '',
-    sendTime: message.sendTime || new Date().toISOString(),
-    // avatar: message.avatar, // API中没有avatar字段
+const handleNewMessage = (message: Partial<SystemChatMessageVO>) => {
+  const newMsg: SystemChatMessageVO = {
+    id: message.id,
+    fromUserId: message.fromUserId,
+    fromNickname: message.fromNickname,
+    fromAvatar: message.fromAvatar,
+    toUserId: message.toUserId,
+    toNickname: message.toNickname,
+    toAvatar: message.toAvatar,
+    content: message.content,
+    sendTime: message.sendTime,
     isOwn: message.fromUserId === currentUserId.value
   }
 
@@ -494,7 +440,7 @@ const loadChats = async () => {
   try {
     const response = await getChatList()
     chats.value = response || []
-    chats.value = chats.value.map((chat: SystemChatListVO) => ({
+    chats.value = chats.value.map((chat: SystemChatVO) => ({
       peerUserId: chat.peerUserId || 0,
       peerUsername: chat.peerUsername || '未知',
       peerNickname: chat.peerNickname || '未知',
@@ -513,7 +459,7 @@ const loadChats = async () => {
 // 生命周期
 onMounted(async () => {
   try {
-    await Promise.all([loadChats(), loadUnreadCount(), loadAllUsers()])
+    await Promise.all([loadChats(), loadUnreadCount(), loadChatUsers()])
   } catch (error) {
     console.error('onMounted 中发生错误:', error)
   }
@@ -524,7 +470,7 @@ onMounted(async () => {
 // 监听对话框打开事件
 watch(showUserDialog, (newVal) => {
   if (newVal && allUsers.value.length === 0) {
-    loadAllUsers()
+    loadChatUsers()
   }
 })
 

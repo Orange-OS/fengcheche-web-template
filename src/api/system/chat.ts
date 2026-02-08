@@ -6,19 +6,25 @@ export interface SystemChatSendMessageForm {
   content: string
 }
 
+export interface SystemChatMessageVO {
+  id: number
+  fromUserId: number
+  fromNickname: string
+  fromAvatar: string
+  toUserId: number
+  toNickname: string
+  toAvatar: string
+  content: string
+  sendTime: string
+  isOwn?: boolean
+}
+
 export interface SystemChatGetChatHistoryVO {
-  list: Array<{
-    id: number
-    fromUserId: number
-    toUserId: number
-    fromUsername: string
-    content: string
-    sendTime: string
-  }>
+  list: Array<SystemChatMessageVO>
   total: number
 }
 
-export interface SystemChatListVO {
+export interface SystemChatVO {
   peerUserId: number
   peerUsername: string
   peerNickname: string
@@ -61,8 +67,8 @@ export function getChatHistory(params: SystemChatGetChatHistoryForm): Promise<Sy
 /**
  * 获取当前用户的聊天列表
  */
-export function getChatList(): Promise<SystemChatListVO[]> {
-  return request<SystemChatListVO[]>({
+export function getChatList(): Promise<SystemChatVO[]> {
+  return request<SystemChatVO[]>({
     url: '/system/chat/list',
     method: 'get',
   })
@@ -76,4 +82,12 @@ export function getUnReadCount() {
     url: '/system/chat/unread-count',
     method: 'get',
   })
+}
+
+export interface SystemUserVO {
+  id: number
+  username: string
+  nickname: string
+  acatar: string
+  email: string
 }
