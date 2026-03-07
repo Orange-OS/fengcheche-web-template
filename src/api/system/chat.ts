@@ -1,9 +1,31 @@
 import request from '@/utils/request';
 
+// 消息接口参数类型
+export interface JsonWebSocketMessage {
+  type: string
+  content: string
+}
+
+// 接收消息接口参数类型
+export interface SystemChatReceiveMessage {
+  messageId: number
+  fromUserId?: number
+  text: string
+}
+
+// 发送消息接口参数类型
+export interface SystemChatSendMessage {
+  toUserId: number
+  text: string
+}
+
+
 // 发送消息接口参数类型
 export interface SystemChatSendMessageForm {
   toUserId: number
   content: string
+  // 前端用于本地临时消息与服务端消息去重的临时ID
+  tempId?: number
 }
 
 export interface SystemChatMessageVO {
@@ -17,6 +39,8 @@ export interface SystemChatMessageVO {
   content: string
   sendTime: string
   isOwn?: boolean
+  // 可选的临时ID，前端用来消除本地临时消息和服务端回执的重复
+  tempId?: number
 }
 
 export interface SystemChatGetChatHistoryVO {
@@ -25,25 +49,21 @@ export interface SystemChatGetChatHistoryVO {
 }
 
 export interface SystemChatVO {
+  // 对方用户ID
   peerUserId: number
+  // 对方用户名
   peerUsername: string
+  // 对方用户昵称
   peerNickname: string
+  // 对方用户头像
   peerAvatar: string
+  // 最后一条消息内容
   lastMessage: string
+  // 最后一条消息时间
   lastMessageTime: string
+  // 未读消息数量
   unreadCount: number
   online?: boolean
-}
-
-/**
- * 发送消息（当前登录用户 -> 指定用户）
- */
-export function sendMessage(data: SystemChatSendMessageForm) {
-  return request({
-    url: '/system/chat/send',
-    method: 'post',
-    data,
-  })
 }
 
 // 分页获取与某个用户的聊天记录接口参数类型
