@@ -12,6 +12,8 @@ import { ElMessage } from 'element-plus'
 // 引入公共样式
 import '@/assets/scss/index.scss'
 import '@/assets/styles/global.css'   // 引入全局样式
+// 引入中文语言包
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 
 const pinia = createPinia()
 const app = createApp(App)
@@ -58,7 +60,7 @@ app.config.globalProperties.$storage = storage
 
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus)
+app.use(ElementPlus, {locale:zhCn})
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
