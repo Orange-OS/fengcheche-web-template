@@ -7,7 +7,7 @@
           <template #header>
             <div class="card-header">
               <span>角色列表</span>
-              <el-button type="primary" size="small" @click="handleAdd">新增角色</el-button>
+              <el-button type="primary" @click="handleAdd">新增角色</el-button>
             </div>
           </template>
 
@@ -24,8 +24,8 @@
               <div class="role-code">{{ role.code }}</div>
               <div class="role-description" v-if="role.description">{{ role.description }}</div>
               <div class="role-actions">
-                <el-button type="primary" link size="small" @click.stop="handleEdit(role)">编辑</el-button>
-                <el-button type="danger" link size="small" @click.stop="handleDelete(role)">删除</el-button>
+                <el-button type="primary" link @click.stop="handleEdit(role)">编辑</el-button>
+                <el-button type="danger" link @click.stop="handleDelete(role)">删除</el-button>
               </div>
             </div>
           </div>
@@ -34,7 +34,7 @@
           <div class="pagination-wrapper">
             <el-pagination v-model:current-page="queryParams.pageNum" v-model:page-size="queryParams.pageSize"
               :total="total" :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next"
-              @size-change="handleSizeChange" @current-change="handleCurrentChange" small />
+              @size-change="handleSizeChange" @current-change="handleCurrentChange" size="small" />
           </div>
         </el-card>
       </div>
