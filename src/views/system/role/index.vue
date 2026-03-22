@@ -189,7 +189,9 @@ const hideNonButtonCheckboxes = () => {
           if (menuType === 'M') {
             checkbox.style.display = 'none'
           } else if (menuType === 'C' || menuType === 'F') {
-            checkbox.style.display = 'inline-block'
+            checkbox.style.display = 'inline-flex'
+            checkbox.style.alignItems = 'center'
+            checkbox.style.verticalAlign = 'middle'
           }
         }
       }
